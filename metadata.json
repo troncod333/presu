@@ -1,0 +1,6 @@
+{
+  "name": "Presupuestador Inteligente Pro",
+  "description": "Calculadora de presupuestos de construcción para Chile con Asistente IA Gemini, geolocalización de proveedores y exportación PDF para Android y Web.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
