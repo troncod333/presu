@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ProjectType, QualityTier, AICalculationResult } from '../types';
-import { PROJECT_QUESTIONS, BASE_MATERIALS_CHILE } from '../data/chileData';
+import { PROJECT_QUESTIONS } from '../data/chileData';
+import { calculateAreaMaterialsLocal } from '../utils/areaCalculators';
 import { Sparkles, Brain, ListChecks, AlertCircle, ShieldAlert, Lightbulb, CheckCircle, RefreshCw } from 'lucide-react';
 
 interface AIAssistantPanelProps {
@@ -18,7 +19,7 @@ export const AIAssistantPanel: React.FC<AIAssistantPanelProps> = ({
   onApplyCalculatedMaterials,
   onApplyBasicMaterials
 }) => {
-  const [measurements, setMeasurements] = useState<Record<string, number>>({});
+  const [measurements, setMeasurements] = useState<Record<string, any>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -28,9 +29,9 @@ export const AIAssistantPanel: React.FC<AIAssistantPanelProps> = ({
   useEffect(() => {
     if (projectType) {
       const questions = PROJECT_QUESTIONS[projectType] || [];
-      const defaults: Record<string, number> = {};
+      const defaults: Record<string, any> = {};
       questions.forEach(q => {
-        defaults[q.id] = q.defaultValue || 1;
+        defaults[q.id] = q.defaultValue !== undefined ? q.defaultValue : 1;
       });
       setMeasurements(defaults);
       setAiResult(null);
@@ -40,15 +41,22 @@ export const AIAssistantPanel: React.FC<AIAssistantPanelProps> = ({
 
   const questions = projectType ? PROJECT_QUESTIONS[projectType] || [] : [];
 
-  const handleInputChange = (id: string, value: string) => {
-    const num = parseFloat(value);
-    setMeasurements(prev => ({
-      ...prev,
-      [id]: isNaN(num) ? 0 : num
-    }));
+  const handleInputChange = (id: string, value: string, isSelect: boolean = false) => {
+    if (isSelect) {
+      setMeasurements(prev => ({
+        ...prev,
+        [id]: value
+      }));
+    } else {
+      const num = parseFloat(value);
+      setMeasurements(prev => ({
+        ...prev,
+        [id]: isNaN(num) ? 0 : num
+      }));
+    }
   };
 
-  const isFormValid = Object.values(measurements).some((val: number) => val > 0);
+  const isFormValid = Object.values(measurements).some((val: any) => val !== '' && val !== null && val !== undefined && val !== 0);
 
   const loadingSteps = [
     "🤖 Conectando con Google Gemini AI...",
@@ -113,34 +121,8 @@ export const AIAssistantPanel: React.FC<AIAssistantPanelProps> = ({
       console.warn("Fallback local por falta de API key o error de red:", err);
       clearInterval(stepInterval);
 
-      // Perform a smart fallback calculation locally using preset Chile formulas
-      const baseMats = BASE_MATERIALS_CHILE[projectType] || [];
-      const fallbackMaterials = baseMats.map((mat, idx) => {
-        let qty = 1;
-        const mainInput = Number(Object.values(measurements)[0]) || 1;
-        
-        if (mat.unit === 'metro') qty = Math.ceil(mainInput * 1.2);
-        else if (mat.unit === 'm²') qty = Math.ceil(mainInput * 1.1);
-        else if (mat.unit === 'saco' || mat.unit === 'plancha') qty = Math.max(1, Math.ceil(mainInput / 8));
-        else qty = Math.max(1, Math.ceil(mainInput / 4));
-
-        return {
-          id: `fb_${idx}_${Date.now()}`,
-          ...mat,
-          quantity: qty,
-          selected: true,
-          aiCalculated: true,
-          reasoning: 'Cálculo optimizado con fórmula estándar de rendimiento'
-        };
-      });
-
-      const fallbackResult: AICalculationResult = {
-        materials: fallbackMaterials,
-        technicalAdvice: `Para proyectos de ${projectType.toUpperCase()} en Chile, verifica el cumplimiento de las especificaciones del fabricante y normativas SEC / MINVU vigentes.`,
-        safetyNote: 'Utiliza siempre Elementos de Protección Personal (EPP) adecuados: casco, lentes de seguridad y calzado dieléctrico/antideslizante.',
-        savingTips: 'Cotiza en ferreterías locales y almacenes de construcción cercanos para reducir costos de flete.',
-        estimatedLaborMultiplier: 0.40
-      };
+      // Perform a smart fallback calculation locally using precise Chile area formulas
+      const fallbackResult = calculateAreaMaterialsLocal(projectType, measurements, quality);
 
       setAiResult(fallbackResult);
       onApplyCalculatedMaterials(fallbackResult);
@@ -191,20 +173,39 @@ export const AIAssistantPanel: React.FC<AIAssistantPanelProps> = ({
             <label className="block text-xs font-semibold text-gray-700 dark:text-gray-200 mb-1">
               {q.label}
             </label>
-            <div className="flex items-center space-x-2">
-              <input
-                type="number"
-                min="0"
-                step="0.1"
-                value={measurements[q.id] ?? ''}
-                onChange={(e) => handleInputChange(q.id, e.target.value)}
-                placeholder="0"
-                className="w-full p-2.5 text-sm font-semibold border border-gray-300 dark:border-gray-500 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
-              />
-              <span className="text-xs font-medium px-3 py-2.5 bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-300 rounded-lg shrink-0">
-                {q.unit}
-              </span>
-            </div>
+            {q.type === 'select' ? (
+              <select
+                value={measurements[q.id] ?? q.defaultValue ?? ''}
+                onChange={(e) => handleInputChange(q.id, e.target.value, true)}
+                className="w-full p-2.5 text-sm font-semibold border border-gray-300 dark:border-gray-500 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none cursor-pointer"
+              >
+                {(q.options || []).map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <div className="flex items-center space-x-2">
+                <input
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  value={measurements[q.id] ?? ''}
+                  onChange={(e) => handleInputChange(q.id, e.target.value, false)}
+                  placeholder="0"
+                  className="w-full p-2.5 text-sm font-semibold border border-gray-300 dark:border-gray-500 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+                />
+                <span className="text-xs font-medium px-3 py-2.5 bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-300 rounded-lg shrink-0">
+                  {q.unit}
+                </span>
+              </div>
+            )}
+            {q.helpText && (
+              <p className="mt-1 text-[11px] text-gray-500 dark:text-gray-400 leading-snug">
+                💡 {q.helpText}
+              </p>
+            )}
           </div>
         ))}
       </div>

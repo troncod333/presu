@@ -36,13 +36,19 @@ export interface Supplier {
   notes?: string;
 }
 
+export interface ProjectQuestionOption {
+  value: string | number;
+  label: string;
+}
+
 export interface ProjectQuestion {
   id: string;
   label: string;
-  type: 'number' | 'text';
+  type: 'number' | 'text' | 'select';
   unit: string;
   placeholder?: string;
-  defaultValue?: number;
+  defaultValue?: number | string;
+  options?: ProjectQuestionOption[];
   helpText?: string;
 }
 

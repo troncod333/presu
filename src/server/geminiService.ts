@@ -2,7 +2,7 @@ import { GoogleGenAI, Type } from "@google/genai";
 
 export interface CalculateMaterialsParams {
   projectType: string;
-  measurements: Record<string, number>;
+  measurements: Record<string, any>;
   quality: 'bajo' | 'medio' | 'premium';
   address?: string;
 }
@@ -53,9 +53,12 @@ Calcula con precisión los materiales necesarios y precios de referencia en Peso
 
 Instrucciones:
 1. Calcula la lista exacta de materiales necesarios incluyendo un margen razonable de merma (5-10%).
-2. Proporciona precios base por unidad realistas del mercado chileno actual (2025) en CLP sin puntos ni comas (ej. 4500 para $4.500 CLP).
-3. Añade explicaciones técnicas cortas, normativa chilena aplicable (ej. SEC para electricidad/gas, MINVU para construcción/ampliaciones) y consejos de ahorro.
-4. Devuelve los resultados en el formato JSON especificado.
+2. Si el proyecto es ELECTRICIDAD:
+   - Identifica el tipo de instalación (embutido: tubería conduit PVC, cajas embutidas rectangulares/octogonales; sobrepuesto: canaletas PVC Dexson/Legrand, cajas sobrepuestas IP44, tarugos+tornillos).
+   - Para circuitos de fuerza (cocina, horno, lavadora, secadora, termo): aplica norma SEC RIC N°10 exigiendo conductor THHN 4.0mm², automáticos independientes C20/C25A y tomas reforzadas de 16A/20A.
+3. Proporciona precios base por unidad realistas del mercado chileno actual (2025) en CLP sin puntos ni comas (ej. 4500 para $4.500 CLP).
+4. Añade explicaciones técnicas cortas, normativa chilena aplicable (SEC RIC N°02/N°10, MINVU, RIDAA) y consejos de ahorro.
+5. Devuelve los resultados en el formato JSON especificado.
   `;
 
   const config = {

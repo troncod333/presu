@@ -103,41 +103,290 @@ export const PROJECT_CATEGORIES: {
 
 export const PROJECT_QUESTIONS: Record<ProjectType, ProjectQuestion[]> = {
   electricidad: [
+    {
+      id: 'installType',
+      label: 'Tipo de Instalación Eléctrica',
+      type: 'select',
+      unit: 'tipo',
+      defaultValue: 'embutido',
+      options: [
+        { value: 'embutido', label: 'Embutida (Muros / Conduit PVC)' },
+        { value: 'sobrepuesto', label: 'Sobrepuesta (Canaletas PVC Dexson / Cajas Exterior)' }
+      ],
+      helpText: 'Embutido requiere picado/tubo conduit; sobrepuesto usa canaletas PVC a muro.'
+    },
+    {
+      id: 'forceCircuits',
+      label: 'Circuitos de Fuerza Dedicados (Cocina / Horno / Lavadora)',
+      type: 'number',
+      unit: 'circuitos',
+      defaultValue: 1,
+      helpText: 'Norma SEC RIC N°10: Conductor THHN 4.0mm² y automáticos independientes C20/C25A'
+    },
     { id: 'rooms', label: 'Número de habitaciones / recintos', type: 'number', unit: 'unidades', defaultValue: 3 },
-    { id: 'outlets', label: 'Enchufes necesarios (10A/16A)', type: 'number', unit: 'unidades', defaultValue: 10 },
+    { id: 'outlets', label: 'Enchufes generales (10A/16A)', type: 'number', unit: 'unidades', defaultValue: 10 },
     { id: 'lights', label: 'Puntos de luz / focos LED', type: 'number', unit: 'unidades', defaultValue: 6 },
     { id: 'distance', label: 'Distancia estimada de canalización/cableado', type: 'number', unit: 'metros', defaultValue: 40 }
   ],
   camaras: [
-    { id: 'cameras', label: 'Número de cámaras IP / Domo', type: 'number', unit: 'unidades', defaultValue: 4 },
+    {
+      id: 'cameraLocation',
+      label: 'Ubicación Principal de Cámaras',
+      type: 'select',
+      unit: 'tipo',
+      defaultValue: 'exterior',
+      options: [
+        { value: 'exterior', label: 'Exterior (Cámaras IP67 Intemperie + Cajas IP65 Estancas)' },
+        { value: 'interior', label: 'Interior (Domo Compacto Antirrobo)' },
+        { value: 'mixto', label: 'Mixto (Cámaras de Exterior e Interior)' }
+      ],
+      helpText: 'Cámaras de exterior incluyen grado IP67 y cajas de derivación selladas.'
+    },
+    {
+      id: 'conduitType',
+      label: 'Tipo de Canalización / Cableado',
+      type: 'select',
+      unit: 'tipo',
+      defaultValue: 'sobrepuesto',
+      options: [
+        { value: 'sobrepuesto', label: 'Sobrepuesto (Canaletas PVC Dexson / Tubo Conduit Exterior)' },
+        { value: 'embutido', label: 'Embutido (Tubería Conduit bajo muro o entretecho)' }
+      ],
+      helpText: 'Sobrepuesto incluye canaletas PVC con adhesivo/tarugos; embutido considera tuberías en muro.'
+    },
+    {
+      id: 'monitors',
+      label: 'Monitores / Pantallas de Control',
+      type: 'select',
+      unit: 'pantallas',
+      defaultValue: '1',
+      options: [
+        { value: '0', label: 'Sin Monitor (Monitoreo solo vía App Móvil / PC)' },
+        { value: '1', label: '1 Monitor LED 22" Full HD con Cable HDMI 3m' },
+        { value: '2', label: '2 Monitores LED (Monitoreo Centralizado Dual)' }
+      ],
+      helpText: 'Incluye pantalla LED Full HD, soporte de pared y cableado HDMI/VGA.'
+    },
+    { id: 'cameras', label: 'Número total de cámaras IP / Domo', type: 'number', unit: 'unidades', defaultValue: 4 },
     { id: 'cableDistance', label: 'Distancia promedio de cable UTP por cámara', type: 'number', unit: 'metros', defaultValue: 25 },
     { id: 'recordingDays', label: 'Días deseados de almacenamiento', type: 'number', unit: 'días', defaultValue: 15 }
   ],
   ceramicas: [
+    {
+      id: 'surfaceType',
+      label: 'Tipo de Superficie de Base',
+      type: 'select',
+      unit: 'tipo',
+      defaultValue: 'losa',
+      options: [
+        { value: 'losa', label: 'Piso Losa de Hormigón / Radier' },
+        { value: 'tabique', label: 'Muro Tabiquería (Volcanita / Fibrocemento / Madera)' },
+        { value: 'existente', label: 'Sobre Cerámica Existente (Piso sobre Piso)' }
+      ],
+      helpText: 'Tabiquería requiere Adhesivo en Pasta; piso sobre piso requiere Promotor de Adherencia.'
+    },
+    {
+      id: 'tileType',
+      label: 'Tipo de Revestimiento',
+      type: 'select',
+      unit: 'material',
+      defaultValue: 'ceramica',
+      options: [
+        { value: 'ceramica', label: 'Cerámica Estándar (30x30cm / 45x45cm)' },
+        { value: 'porcelanato', label: 'Porcelanato Rectificado (60x60cm / 120x60cm)' }
+      ],
+      helpText: 'El porcelanato requiere Adhesivo Bekron Porcelanato y Cuñas Niveladoras Auto-nivelantes.'
+    },
+    {
+      id: 'wetArea',
+      label: '¿Incluye Zona Húmeda / Ducha / Exterior?',
+      type: 'select',
+      unit: 'zona',
+      defaultValue: 'no',
+      options: [
+        { value: 'no', label: 'No (Habitaciones / Living / Comedor)' },
+        { value: 'si', label: 'Sí (Ducha / Baño / Exterior - Con Membrana Impermeabilizante)' }
+      ],
+      helpText: 'Incluye membrana impermeabilizante y fragüe hidráulico anti-hongos.'
+    },
     { id: 'floorArea', label: 'Área de piso a revestir', type: 'number', unit: 'm²', defaultValue: 20 },
     { id: 'wallArea', label: 'Área de muros a revestir', type: 'number', unit: 'm²', defaultValue: 15 },
     { id: 'wasteMargin', label: 'Margen de corte/merma estimado', type: 'number', unit: '%', defaultValue: 10 }
   ],
   ampliaciones: [
+    {
+      id: 'structureType',
+      label: 'Sistema Estructural Principal',
+      type: 'select',
+      unit: 'sistema',
+      defaultValue: 'albanileria',
+      options: [
+        { value: 'albanileria', label: 'Albañilería Confinada (Ladrillo Fiscal + Pilares/Cadenas Hormigón)' },
+        { value: 'metalcon', label: 'Metalcon Estructural Galvanizado (Estructura de Acero)' },
+        { value: 'madera', label: 'Madera Estructural (Pino Cepillado / Tratado)' }
+      ],
+      helpText: 'Ladrillo fiscal requiere fierros estriados y morteros; Metalcon requiere perfilería galvanizada.'
+    },
+    {
+      id: 'foundation',
+      label: '¿Incluye Radier y Cimientos de Hormigón?',
+      type: 'select',
+      unit: 'radier',
+      defaultValue: 'si',
+      options: [
+        { value: 'si', label: 'Sí (Cimiento, Sobrecimiento, Radier 10cm + Malla Acma)' },
+        { value: 'no', label: 'No (Construcción sobre Radier o Losa ya existente)' }
+      ],
+      helpText: 'Radier 10cm incluye Hormigón Melón H20, malla electrosoldada C-139, ripio y polietileno.'
+    },
+    {
+      id: 'roofType',
+      label: 'Tipo de Cubierta de Techumbre',
+      type: 'select',
+      unit: 'techumbre',
+      defaultValue: 'zinc',
+      options: [
+        { value: 'zinc', label: 'Planchas Zinc Acanalado 0.35mm' },
+        { value: 'teja_asfaltica', label: 'Teja Asfáltica sobre Plancha OSB 11.1mm + Fieltro 15L' },
+        { value: 'panel_aislante', label: 'Panel Sándwich Aislante PV4 Poliestireno' }
+      ],
+      helpText: 'Teja asfáltica requiere OSB estructural 11.1mm y fieltro asfáltico de barrera.'
+    },
     { id: 'length', label: 'Largo de la ampliación', type: 'number', unit: 'metros', defaultValue: 4 },
     { id: 'width', label: 'Ancho de la ampliación', type: 'number', unit: 'metros', defaultValue: 3 },
     { id: 'height', label: 'Altura promedio de muros', type: 'number', unit: 'metros', defaultValue: 2.4 }
   ],
   cerrajeria: [
+    {
+      id: 'doorType',
+      label: 'Tipo de Puerta Principal',
+      type: 'select',
+      unit: 'tipo',
+      defaultValue: 'exterior_madera',
+      options: [
+        { value: 'exterior_madera', label: 'Puerta Madera Sólida / Exterior' },
+        { value: 'interior_paso', label: 'Puerta Interior Alveolar' },
+        { value: 'metal_reja', label: 'Puerta Metálica / Reja de Acceso Exterior' }
+      ],
+      helpText: 'Puertas metálicas/rejas utilizan cerraduras de sobreponer soldables/atornillables.'
+    },
+    {
+      id: 'securityLevel',
+      label: 'Nivel de Seguridad Deseado',
+      type: 'select',
+      unit: 'nivel',
+      defaultValue: 'alta_seguridad',
+      options: [
+        { value: 'alta_seguridad', label: 'Alta Seguridad (Scanavini 2050 3 Golpes / Cerrojo Macizo)' },
+        { value: 'digital', label: 'Cerradura Digital Smart (Huella / Clave / Bluetooth)' },
+        { value: 'estandar', label: 'Cerradura Estándar de Cilindro / Pomo' }
+      ],
+      helpText: 'Cerraduras Smart digitales incluyen teclado táctil, lector biométrico y llaves mecánicas de emergencia.'
+    },
     { id: 'mainDoors', label: 'Puertas de acceso principal (seguridad)', type: 'number', unit: 'unidades', defaultValue: 1 },
     { id: 'interiorDoors', label: 'Puertas interiores o de paso', type: 'number', unit: 'unidades', defaultValue: 4 }
   ],
   gasfiteria: [
+    {
+      id: 'pipeType',
+      label: 'Sistema de Tubería de Agua Potable',
+      type: 'select',
+      unit: 'sistema',
+      defaultValue: 'pex',
+      options: [
+        { value: 'pex', label: 'Tubería PEX Flexible con Conexiones de Prensa' },
+        { value: 'ppr', label: 'Polipropileno PPR Termofusión' },
+        { value: 'cobre', label: 'Tubería Cobre Tipo L Soldada' }
+      ],
+      helpText: 'PEX permite instalación flexible en tramos continuos; PPR requiere dado termofusor.'
+    },
+    {
+      id: 'waterHeaterType',
+      label: 'Sistema de Calentamiento de Agua',
+      type: 'select',
+      unit: 'equipo',
+      defaultValue: 'calefont',
+      options: [
+        { value: 'calefont', label: 'Calefont Ionizado Tiro Forzado (Gas GLP/GN)' },
+        { value: 'termo', label: 'Termo Eléctrico Eficiente 80L - 120L' },
+        { value: 'ninguno', label: 'Sin Calentador (Conexión a Red Existente)' }
+      ],
+      helpText: 'Calefont requiere ducto de evacuación inox y flexibles de gas certificados por SEC.'
+    },
     { id: 'bathrooms', label: 'Número de baños completos', type: 'number', unit: 'unidades', defaultValue: 1 },
     { id: 'kitchens', label: 'Cocinas / Logias', type: 'number', unit: 'unidades', defaultValue: 1 },
-    { id: 'distance', label: 'Distancia estimada de tuberías PEX/PVC', type: 'number', unit: 'metros', defaultValue: 20 }
+    { id: 'distance', label: 'Distancia estimada de tuberías', type: 'number', unit: 'metros', defaultValue: 20 }
   ],
   pintura: [
+    {
+      id: 'paintType',
+      label: 'Tipo de Pintura de Terminación',
+      type: 'select',
+      unit: 'tipo',
+      defaultValue: 'esmalte_agua',
+      options: [
+        { value: 'esmalte_agua', label: 'Esmalte al Agua Satinado Lavable (Baños, Cocinas, Interiores)' },
+        { value: 'latex', label: 'Látex Extracubriente Estándar (Cielos y Zonas Secas)' },
+        { value: 'oleo', label: 'Óleo / Anticorrosivo (Superficies Metálicas / Maderas Exterior)' }
+      ],
+      helpText: 'El esmalte al agua es lavable, antihongos e ideal para zonas de tráfico y humedad.'
+    },
+    {
+      id: 'surfaceCondition',
+      label: 'Estado Previo de la Superficie',
+      type: 'select',
+      unit: 'estado',
+      defaultValue: 'nueva',
+      options: [
+        { value: 'nueva', label: 'Muro Nuevo / Enlucido Pasta (Requiere Pasta Muro 2 Manos + Primer Fijador)' },
+        { value: 'repintado', label: 'Repintado / Superficie en Buen Estado (Solo Limpieza + Pintura)' },
+        { value: 'con_fisuras', label: 'Muro Dañado / Con Fisuras (Requiere Malla de Refuerzo + Pasta y Lijado)' }
+      ],
+      helpText: 'Muros nuevos o dañados requieren tineta de pasta muro y fijador de porosidad.'
+    },
     { id: 'wallArea', label: 'Superficie total muros a pintar', type: 'number', unit: 'm²', defaultValue: 60 },
     { id: 'ceilingArea', label: 'Superficie de cielos/techos', type: 'number', unit: 'm²', defaultValue: 25 },
     { id: 'coats', label: 'Número de manos de pintura', type: 'number', unit: 'manos', defaultValue: 2 }
   ],
   carpinteria: [
+    {
+      id: 'structureType',
+      label: 'Perfilería o Estructura de Tabiques',
+      type: 'select',
+      unit: 'material',
+      defaultValue: 'metalcon',
+      options: [
+        { value: 'metalcon', label: 'Metalcon Galvanizado (Montantes 60mm + Canales 62mm)' },
+        { value: 'madera', label: 'Madera Pino Cepillado (2x2" / 2x3")' }
+      ],
+      helpText: 'Metalcon es incombustible y no se deforma; la madera requiere tornillos para madera.'
+    },
+    {
+      id: 'boardType',
+      label: 'Tipo de Planchas de Revestimiento',
+      type: 'select',
+      unit: 'plancha',
+      defaultValue: 'volcanita_std',
+      options: [
+        { value: 'volcanita_std', label: 'Volcanita Estándar 12.5mm (Zonas Secas)' },
+        { value: 'volcanita_rh', label: 'Volcanita RH Anti-Humedad Verde 12.5mm (Baños / Cocinas)' },
+        { value: 'osb_volcanita', label: 'OSB Estructural 9.5mm + Volcanita 12.5mm (Doble Plancha Antirrobo/Acústica)' }
+      ],
+      helpText: 'Volcanita RH es resistente a la humedad; OSB + Volcanita da alta rigidez estructural.'
+    },
+    {
+      id: 'insulationType',
+      label: 'Aislación Termoacústica Interior',
+      type: 'select',
+      unit: 'aislación',
+      defaultValue: 'lana_vidrio',
+      options: [
+        { value: 'lana_vidrio', label: 'Lana de Vidrio 50mm con Papel Aluminio (Barrera de Vapor)' },
+        { value: 'poliestireno', label: 'Poliestireno Expandido Aislapor 50mm (Planchas)' },
+        { value: 'ninguno', label: 'Sin Aislación Interior' }
+      ],
+      helpText: 'Lana de vidrio con aluminio brinda aislamientos acústico y térmico con barrera de vapor.'
+    },
     { id: 'wallLength', label: 'Largo total de tabique a construir', type: 'number', unit: 'metros', defaultValue: 8 },
     { id: 'height', label: 'Altura del tabique', type: 'number', unit: 'metros', defaultValue: 2.4 },
     { id: 'sides', label: 'Nivel de emplanchado', type: 'number', unit: 'caras', defaultValue: 2 }
