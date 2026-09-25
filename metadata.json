@@ -1,6 +1,6 @@
 {
-  "name": "Presupuestador Inteligente Pro",
-  "description": "Calculadora de presupuestos de construcción para Chile con Asistente IA Gemini, geolocalización de proveedores y exportación PDF para Android y Web.",
-  "requestFramePermissions": ["geolocation"],
+  "name": "PSR Studio",
+  "description": "Emulador interactivo de teclado y estación de ritmos Yamaha PSR-620 con 20 estilos de acompañamiento automático, sintetizador Tone.js, pantalla LCD y pads.",
+  "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
