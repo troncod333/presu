@@ -31,8 +31,12 @@ import {
   Settings2,
   Crosshair,
   Info,
-  X
+  X,
+  Crown,
+  Lock
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { TOKEN_COSTS } from '../types/auth';
 
 export type CanvasItemType = 
   | 'door'
@@ -117,6 +121,15 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
   const [snapToGrid, setSnapToGrid] = useState<boolean>(true);
   const [themeMode, setThemeMode] = useState<'blueprint' | 'dark' | 'light'>('blueprint');
   const [exportNotice, setExportNotice] = useState<string | null>(null);
+
+  const {
+    isAuthenticated,
+    isPro,
+    tokens,
+    consumeTokens,
+    openAuthModal,
+    openPaywallModal
+  } = useAuth();
 
   // Placed elements & walls
   const [items, setItems] = useState<CanvasPlacedItem[]>([]);
@@ -481,14 +494,17 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
     switch (projectType) {
       case 'electricidad':
         return list.filter(i => ['door', 'window', 'outlet', 'switch', 'light', 'panel_tda', 'force_circuit'].includes(i.type));
+      case 'cctv':
       case 'camaras':
         return list.filter(i => ['door', 'window', 'camera_ext', 'camera_int', 'nvr', 'monitor', 'junction_box'].includes(i.type));
       case 'gasfiteria':
         return list.filter(i => ['door', 'window', 'wc', 'sink', 'shower', 'kitchen_sink', 'water_valve', 'calefont'].includes(i.type));
+      case 'ampliacion':
       case 'ampliaciones':
         return list.filter(i => ['door', 'door_double', 'window', 'column', 'outlet', 'light'].includes(i.type));
       case 'cerrajeria':
         return list.filter(i => ['door', 'door_double', 'window'].includes(i.type));
+      case 'tabiqueria':
       case 'carpinteria':
         return list.filter(i => ['door', 'window', 'stud_post', 'outlet'].includes(i.type));
       default:
@@ -942,7 +958,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
     }
 
     // 4. CCTV network cable runs based on physical distance between cameras and NVR
-    if (projectType === 'camaras') {
+    if (projectType === 'camaras' || projectType === 'cctv') {
       const nvr = items.find(i => i.type === 'nvr') || { x: dimensions.width / 2, y: dimensions.height / 2 };
       const cams = items.filter(i => ['camera_ext', 'camera_int'].includes(i.type));
 
@@ -1045,6 +1061,23 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
       return;
     }
 
+    if (!isAuthenticated) {
+      openAuthModal('register');
+      return;
+    }
+
+    if (!isPro && tokens < TOKEN_COSTS.CANVAS_EXPORT) {
+      openPaywallModal('Exportación de cubicación del Plano 2D CAD al Presupuesto', TOKEN_COSTS.CANVAS_EXPORT);
+      return;
+    }
+
+    const tokenRes = consumeTokens(
+      TOKEN_COSTS.CANVAS_EXPORT, 
+      `Exportación de cubicación 2D (${scalePixels}px = ${scaleMeters}m)`, 
+      'canvas_export'
+    );
+    if (!tokenRes.success) return;
+
     // Merge or replace: We update matching materials or append new ones
     const updated = [...currentMaterials];
 
@@ -1071,31 +1104,31 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
   };
 
   // Color palette according to blueprint theme
-  const themeBg = themeMode === 'blueprint' ? '#0a192f' : themeMode === 'dark' ? '#111827' : '#ffffff';
-  const gridColor = themeMode === 'blueprint' ? '#1e3a5f' : themeMode === 'dark' ? '#374151' : '#e2e8f0';
-  const wallStroke = themeMode === 'blueprint' ? '#38bdf8' : themeMode === 'dark' ? '#93c5fd' : '#1e293b';
+  const themeBg = themeMode === 'blueprint' ? '#0b0f17' : themeMode === 'dark' ? '#0f172a' : '#f8fafc';
+  const gridColor = themeMode === 'blueprint' ? '#1a2332' : themeMode === 'dark' ? '#1e293b' : '#e2e8f0';
+  const wallStroke = themeMode === 'blueprint' ? '#2563eb' : themeMode === 'dark' ? '#3b82f6' : '#1e293b';
   const textColor = themeMode === 'light' ? '#0f172a' : '#f8fafc';
 
   const selectedItem = items.find(i => i.id === selectedId);
 
   return (
-    <div className={`bg-white dark:bg-gray-800 rounded-2xl border border-indigo-200/90 dark:border-gray-700 shadow-md overflow-hidden flex flex-col ${className}`}>
+    <div className={`bg-slate-900 rounded-xl border border-slate-800 shadow-md overflow-hidden flex flex-col text-slate-100 ${className}`}>
       
       {/* Header Toolbar */}
-      <div className="p-4 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white flex flex-wrap items-center justify-between gap-3 border-b border-indigo-900/50">
+      <div className="p-3.5 bg-slate-950 text-white flex flex-wrap items-center justify-between gap-3 border-b border-slate-800">
         <div className="flex items-center space-x-3">
-          <div className="w-9 h-9 rounded-xl bg-indigo-500/25 border border-indigo-400/40 flex items-center justify-center text-indigo-300 shadow-xs">
-            <PenTool className="w-4 h-4 text-indigo-400" />
+          <div className="w-8 h-8 rounded-lg bg-orange-600 flex items-center justify-center text-white shadow-xs">
+            <PenTool className="w-4 h-4 text-white" />
           </div>
           <div>
             <div className="flex items-center space-x-2">
-              <h3 className="text-sm font-bold tracking-tight">Plano 2D Interactivo (react-konva)</h3>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 font-bold">
-                Exportador Activo
+              <h3 className="text-sm font-bold tracking-tight">Plano 2D Interactivo de Faena</h3>
+              <span className="text-[10px] px-2 py-0.5 rounded-sm font-mono bg-slate-900 text-orange-400 border border-orange-500/30 font-bold">
+                CUBICACIÓN ESCALADA
               </span>
             </div>
-            <p className="text-xs text-gray-300">
-              Espacio y artefactos generados desde el formulario. Arrastra los elementos para ajustar su ubicación libremente.
+            <p className="text-xs text-slate-400 mt-0.5">
+              Arrastra y calibra artefactos para calcular metrajes reales de cable, tubería y tabiquería
             </p>
           </div>
         </div>
@@ -1105,7 +1138,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
           {onNavigateToBudget && (
             <button
               onClick={onNavigateToBudget}
-              className="flex items-center space-x-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-semibold transition-all cursor-pointer"
+              className="flex items-center space-x-1.5 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 rounded-lg text-xs font-semibold transition-all cursor-pointer"
               title="Volver a los parámetros del formulario y presupuesto"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
@@ -1115,12 +1148,12 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
 
           <button
             onClick={handleExportToProject}
-            className="flex items-center space-x-2 px-3.5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-bold shadow-md hover:shadow-lg transition-all cursor-pointer transform active:scale-95"
+            className="flex items-center space-x-2 px-3.5 py-1.5 bg-orange-600 hover:bg-orange-500 text-white rounded-lg text-xs font-bold shadow-sm shadow-orange-950 transition-all cursor-pointer"
             title="Exportar cantidades de artefactos a la lista de materiales"
           >
             <Download className="w-4 h-4" />
             <span>Exportar al Presupuesto</span>
-            <span className="px-1.5 py-0.2 bg-white/20 rounded-full text-[10px]">
+            <span className="px-1.5 py-0.2 bg-slate-950 rounded text-[10px] font-mono">
               {calculatedMaterialsFromCanvas.length}
             </span>
           </button>
@@ -1128,11 +1161,11 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
       </div>
 
       {/* Sub-Header: Parámetros del Espacio y Artefactos del Formulario */}
-      <div className="bg-indigo-50/70 dark:bg-slate-900/80 border-b border-indigo-100 dark:border-indigo-950 p-3 flex flex-wrap items-center justify-between gap-3 text-xs">
+      <div className="bg-slate-950/80 border-b border-slate-800 p-3 flex flex-wrap items-center justify-between gap-3 text-xs">
         {/* Metric Dimensions Controls */}
         <div className="flex items-center flex-wrap gap-2.5">
-          <span className="font-bold text-indigo-900 dark:text-indigo-200 flex items-center gap-1.5">
-            <Sliders className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+          <span className="font-bold text-slate-200 flex items-center gap-1.5">
+            <Sliders className="w-3.5 h-3.5 text-orange-400" />
             <span>Dimensiones del Espacio:</span>
           </span>
 
@@ -1188,51 +1221,51 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
           {/* Regenerate layout button */}
           <button
             onClick={() => generateLayoutFromParams()}
-            className="flex items-center space-x-1 px-2.5 py-1 bg-white dark:bg-gray-800 hover:bg-indigo-50 dark:hover:bg-gray-700 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-gray-600 rounded-lg font-medium transition-all cursor-pointer shadow-2xs"
+            className="flex items-center space-x-1 px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 rounded-lg font-medium transition-all cursor-pointer shadow-2xs"
             title="Reorganizar automáticamente muros y artefactos según las medidas"
           >
-            <RefreshCw className="w-3 h-3" />
+            <RefreshCw className="w-3 h-3 text-orange-400" />
             <span>Reorganizar desde Parámetros</span>
           </button>
         </div>
 
         {/* Resumen de Artefactos de Entrada */}
         <div className="flex items-center space-x-1.5 flex-wrap">
-          <span className="text-[11px] text-gray-500 font-medium">Artefactos:</span>
+          <span className="text-[11px] text-slate-400 font-medium">Artefactos:</span>
           {initialSpace.artifacts.slice(0, 4).map(art => (
             <span 
               key={art.type} 
-              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-[11px] text-gray-700 dark:text-gray-300"
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-900 border border-slate-800 text-[11px] text-slate-200 font-mono"
               title={`${art.label}: ${art.count} configurados`}
             >
-              <span>{art.badge}</span>
-              <strong className="text-indigo-600 dark:text-indigo-400">{art.count}</strong>
+              <strong className="text-orange-400">{art.count}</strong>
+              <span className="text-slate-400 font-sans">{art.label}</span>
             </span>
           ))}
           {initialSpace.artifacts.length > 4 && (
-            <span className="text-[10px] text-gray-400">+{initialSpace.artifacts.length - 4} más</span>
+            <span className="text-[10px] text-slate-500 font-mono">+{initialSpace.artifacts.length - 4} más</span>
           )}
         </div>
       </div>
 
-      {/* Export Alert Notification */}
+      {/* Export Alert Notification - Safety Lime Fluor */}
       {exportNotice && (
-        <div className="bg-emerald-600 text-white px-4 py-2 text-xs font-semibold flex items-center justify-between animate-fade-in shadow-xs">
+        <div className="badge-reflective px-4 py-2 text-xs font-semibold flex items-center justify-between animate-fade-in shadow-xs">
           <div className="flex items-center space-x-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-200" />
+            <CheckCircle2 className="w-4 h-4 stroke-[3]" />
             <span>{exportNotice}</span>
           </div>
           <button 
             onClick={() => setExportNotice(null)}
-            className="text-white/80 hover:text-white text-xs px-2 py-0.5 rounded"
+            className="text-slate-950 font-black text-xs px-2 py-0.5 rounded hover:bg-black/10 cursor-pointer"
           >
-            Cerrar
+            ✕
           </button>
         </div>
       )}
 
       {/* Controls & Artifact Palette */}
-      <div className="p-3 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 text-xs">
+      <div className="p-3 bg-slate-950 border-b border-slate-800 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 text-xs">
         
         {/* Mode Tools: Select, Wall, Presets */}
         <div className="flex items-center space-x-1.5 flex-wrap gap-y-1">
@@ -1240,8 +1273,8 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
             onClick={() => setActiveTool('select')}
             className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
               activeTool === 'select'
-                ? 'bg-indigo-600 text-white shadow-xs'
-                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 hover:bg-gray-100'
+                ? 'bg-blue-600 text-white shadow-xs'
+                : 'bg-slate-900 text-slate-300 border border-slate-700 hover:bg-slate-800 hover:text-white'
             }`}
             title="Modo Seleccionar y Mover Elementos"
           >
@@ -1253,25 +1286,25 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
             onClick={() => setActiveTool('wall')}
             className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
               activeTool === 'wall'
-                ? 'bg-indigo-600 text-white shadow-xs'
-                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 hover:bg-gray-100'
+                ? 'bg-blue-600 text-white shadow-xs'
+                : 'bg-slate-900 text-slate-300 border border-slate-700 hover:bg-slate-800 hover:text-white'
             }`}
             title="Dibuja muros lineales haciendo clic para iniciar y finalizar el tramo"
           >
             <PenTool className="w-3.5 h-3.5" />
             <span>Trazar Muro</span>
-            {drawingWall && <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />}
+            {drawingWall && <span className="w-2 h-2 rounded-full bg-orange-400 animate-ping" />}
           </button>
 
-          <div className="h-4 w-px bg-gray-300 dark:bg-gray-600 mx-1 hidden sm:block" />
+          <div className="h-4 w-px bg-slate-800 mx-1 hidden sm:block" />
 
           {/* Grid Snap & Theme */}
           <button
             onClick={() => setSnapToGrid(!snapToGrid)}
             className={`flex items-center space-x-1 px-2.5 py-1.5 rounded-lg border text-xs font-semibold cursor-pointer ${
               snapToGrid
-                ? 'bg-indigo-50 dark:bg-indigo-950/60 border-indigo-400 text-indigo-700 dark:text-indigo-300'
-                : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-500'
+                ? 'bg-blue-950 border-blue-500 text-blue-300'
+                : 'bg-slate-900 border-slate-700 text-slate-400'
             }`}
             title="Ajuste magnético a la cuadrícula (0.5m)"
           >
@@ -1823,10 +1856,30 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
         {/* Primary Export CTA Button */}
         <button
           onClick={handleExportToProject}
-          className="flex items-center justify-center space-x-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-sm cursor-pointer"
+          className={`flex items-center justify-center space-x-2 px-4 py-2 text-white rounded-xl text-xs font-bold transition shadow-sm cursor-pointer ${
+            isPro
+              ? 'bg-emerald-600 hover:bg-emerald-700'
+              : !isAuthenticated || tokens < TOKEN_COSTS.CANVAS_EXPORT
+              ? 'bg-gradient-to-r from-emerald-700 to-indigo-700 hover:from-emerald-800 hover:to-indigo-800'
+              : 'bg-emerald-600 hover:bg-emerald-700'
+          }`}
         >
-          <Download className="w-4 h-4" />
-          <span>Exportar al Presupuesto de Materiales</span>
+          {isPro ? (
+            <Crown className="w-4 h-4 text-amber-300" />
+          ) : !isAuthenticated || tokens < TOKEN_COSTS.CANVAS_EXPORT ? (
+            <Lock className="w-4 h-4 text-amber-300" />
+          ) : (
+            <Download className="w-4 h-4" />
+          )}
+          <span>
+            {isPro
+              ? 'Exportar al Presupuesto (PRO Ilimitado)'
+              : !isAuthenticated
+              ? 'Exportar al Presupuesto (+50 Tokens Gratis)'
+              : tokens < TOKEN_COSTS.CANVAS_EXPORT
+              ? `Exportar al Presupuesto (Tokens Agotados: Requiere ${TOKEN_COSTS.CANVAS_EXPORT})`
+              : `Exportar al Presupuesto (-${TOKEN_COSTS.CANVAS_EXPORT} tokens)`}
+          </span>
         </button>
       </div>
 
