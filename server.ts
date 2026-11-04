@@ -83,6 +83,19 @@ Devuelve ÚNICAMENTE un objeto JSON válido con la siguiente estructura:
     }
   });
 
+  // Endpoint to download the backup ZIP of PSR Studio to PC
+  app.get('/api/backup/download', (req, res) => {
+    const zipPath = path.join(process.cwd(), 'backup_psr_studio.zip');
+    res.download(zipPath, 'backup_psr_studio.zip', (err) => {
+      if (err) {
+        console.error('Error al descargar backup_psr_studio.zip:', err);
+        if (!res.headersSent) {
+          res.status(500).send('Error al descargar el archivo de respaldo');
+        }
+      }
+    });
+  });
+
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
       server: { middlewareMode: true },

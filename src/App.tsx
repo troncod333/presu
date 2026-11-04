@@ -33,7 +33,8 @@ import {
   ArrowLeft,
   Home,
   RotateCcw,
-  Share2
+  Share2,
+  FileText
 } from 'lucide-react';
 
 function AppMain() {
@@ -257,9 +258,19 @@ function AppMain() {
     setSavedBudgets(prev => prev.filter(b => b.id !== id));
   };
 
+  // Dynamic project total computation for mobile sticky bar and sync
+  const selectedMaterials = materials.filter(m => m.selected);
+  const mult = QUALITY_MULTIPLIERS[quality] || 1.0;
+  const subtotalMaterials = selectedMaterials.reduce((sum, item) => sum + Math.round(item.basePrice * mult * item.quantity), 0);
+  const categoryConfig = PROJECT_CATEGORIES.find(c => c.id === selectedCategory);
+  const laborPercent = categoryConfig ? categoryConfig.laborPercent : 0.45;
+  const laborCost = Math.round(subtotalMaterials * laborPercent);
+  const transportCost = projectAddress ? Math.min(25000, Math.max(5000, Math.round(subtotalMaterials * 0.05))) : 0;
+  const totalProjectCost = subtotalMaterials + laborCost + transportCost;
+
   // Main UI render
   const mainContent = (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       
       {/* Category Selection */}
       <ProjectCategorySelector
@@ -268,33 +279,30 @@ function AppMain() {
       />
 
       {/* Main Tab Switcher: Presupuesto vs Plano 2D Canvas */}
-      <div className="flex items-center justify-between bg-slate-900 p-1.5 rounded-xl border border-slate-800 shadow-sm flex-wrap gap-2">
-        <div className="flex items-center space-x-2">
+      <div className="grid grid-cols-2 sm:flex sm:items-center sm:justify-between bg-slate-900 p-1 sm:p-1.5 rounded-xl border border-slate-800 shadow-sm gap-1.5">
+        <div className="grid grid-cols-2 sm:flex sm:items-center gap-1.5 col-span-2 sm:col-span-1 w-full sm:w-auto">
           <button
             onClick={() => setActiveAppTab('budget')}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+            className={`flex items-center justify-center space-x-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer ${
               activeAppTab === 'budget'
                 ? 'bg-blue-600 text-white shadow-sm shadow-blue-950'
                 : 'text-slate-400 hover:text-white hover:bg-slate-800'
             }`}
           >
-            <Calculator className="w-4 h-4 text-orange-400" />
-            <span>Asistente IA & Presupuesto</span>
+            <Calculator className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-orange-400 shrink-0" />
+            <span className="truncate">Cálculo & Insumos</span>
           </button>
 
           <button
             onClick={() => setActiveAppTab('floorplan')}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+            className={`flex items-center justify-center space-x-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer ${
               activeAppTab === 'floorplan'
                 ? 'bg-blue-600 text-white shadow-sm shadow-blue-950'
                 : 'text-slate-400 hover:text-white hover:bg-slate-800'
             }`}
           >
-            <PenTool className="w-4 h-4 text-blue-400" />
-            <span>Plano 2D Interactivo</span>
-            <span className="bg-slate-800 text-slate-300 text-[10px] font-mono px-1.5 py-0.2 rounded border border-slate-700">
-              Konva CAD
-            </span>
+            <PenTool className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-400 shrink-0" />
+            <span className="truncate">Plano 2D CAD</span>
           </button>
         </div>
 
@@ -302,7 +310,7 @@ function AppMain() {
         <div className="text-xs text-slate-400 px-2 hidden md:flex items-center space-x-2">
           <span>Insumos activos:</span>
           <span className="font-mono tabular-nums font-bold text-orange-400 bg-slate-950 px-2.5 py-0.5 rounded border border-slate-800">
-            {materials.filter(m => m.selected).length} / {materials.length}
+            {selectedMaterials.length} / {materials.length}
           </span>
         </div>
       </div>
@@ -493,56 +501,56 @@ function AppMain() {
 
       {/* Global Notification & Token Status Banner */}
       {!isAuthenticated ? (
-        <div className="bg-slate-900 text-slate-200 text-xs py-2 px-4 shadow-sm border-b border-orange-500/30">
-          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-            <div className="flex items-center space-x-2 text-center sm:text-left">
+        <div className="bg-slate-900 text-slate-200 text-xs py-2 px-3 sm:px-4 shadow-sm border-b border-orange-500/30">
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-2">
+            <div className="flex items-center space-x-2 truncate">
               <Gift className="w-4 h-4 text-orange-400 shrink-0" />
-              <span>
-                <strong>Acceso completo y gratuito:</strong> Inicia sesión con tu cuenta Google o correo para recibir <strong>50 Tokens de regalo</strong> para cubicación.
+              <span className="truncate text-[11px] sm:text-xs">
+                Inicia sesión para recibir <strong className="text-orange-300">50 Tokens gratis</strong> de cubicación.
               </span>
             </div>
             <button
               onClick={() => openAuthModal('register')}
-              className="px-3.5 py-1.5 bg-orange-600 hover:bg-orange-500 text-white rounded-lg font-bold transition-all shrink-0 shadow-sm flex items-center space-x-1.5 cursor-pointer active:scale-95"
+              className="px-2.5 py-1 bg-orange-600 hover:bg-orange-500 text-white rounded-md font-bold transition-all shrink-0 shadow-sm flex items-center space-x-1 cursor-pointer active:scale-95 text-[11px] sm:text-xs whitespace-nowrap"
             >
-              <span>Reclamar 50 Tokens</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <span>+50 Tokens</span>
+              <ArrowRight className="w-3 h-3" />
             </button>
           </div>
         </div>
       ) : isPro ? (
-        <div className="bg-slate-900 text-slate-200 text-xs py-1.5 px-4 shadow-xs border-b border-[#ccff00]/40">
+        <div className="bg-slate-900 text-slate-200 text-xs py-1 px-3 sm:px-4 shadow-xs border-b border-[#ccff00]/40">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Crown className="w-4 h-4 text-orange-400 shrink-0" />
-              <span>Membresía PRO Activa · Acceso ilimitado a cubicación, planos 2D y cotizaciones PDF.</span>
+            <div className="flex items-center space-x-2 truncate">
+              <Crown className="w-3.5 h-3.5 text-orange-400 shrink-0" />
+              <span className="text-[11px] sm:text-xs truncate">Membresía PRO Activa · Acceso ilimitado a cubicación y planos.</span>
             </div>
-            <span className="badge-reflective text-[9px] px-1.5 py-0.5 rounded-sm">
-              PRO ILIMITADO
+            <span className="badge-reflective text-[8px] sm:text-[9px] px-1.5 py-0.2 rounded-xs shrink-0">
+              PRO
             </span>
           </div>
         </div>
       ) : tokens <= 5 ? (
-        <div className="bg-slate-900 text-slate-200 text-xs py-2 px-4 shadow-sm border-b border-reflective-amber">
-          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-            <div className="flex items-center space-x-2 text-center sm:text-left">
+        <div className="bg-slate-900 text-slate-200 text-xs py-1.5 px-3 sm:px-4 shadow-sm border-b border-reflective-amber">
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-2">
+            <div className="flex items-center space-x-2 truncate">
               <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
-              <span>
+              <span className="text-[11px] sm:text-xs truncate">
                 {tokens === 0 
-                  ? 'Tokens agotados. Pasa a PRO o refiere colegas para ganar tokens adicionales de cubicación.'
-                  : `Te quedan solo ${tokens} tokens. Pasa a PRO para no interrumpir tu cálculo.`}
+                  ? 'Tokens agotados. Refiere colegas o pasa a PRO.'
+                  : `Te quedan ${tokens} tokens.`}
               </span>
             </div>
-            <div className="flex items-center space-x-2 shrink-0">
+            <div className="flex items-center space-x-1.5 shrink-0">
               <button
                 onClick={() => openTokenModal('referrals')}
-                className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg font-bold transition-colors cursor-pointer text-xs border border-slate-700"
+                className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded font-semibold cursor-pointer text-[10px] sm:text-xs border border-slate-700"
               >
-                Ganar +25 Tokens
+                +25
               </button>
               <button
                 onClick={() => openPaywallModal('Suscripción Pro')}
-                className="px-3.5 py-1 bg-orange-600 hover:bg-orange-500 text-white rounded-lg font-bold transition-colors shadow-sm cursor-pointer text-xs"
+                className="px-2.5 py-0.5 bg-orange-600 hover:bg-orange-500 text-white rounded font-bold cursor-pointer text-[10px] sm:text-xs"
               >
                 Pagar PRO
               </button>
@@ -552,31 +560,31 @@ function AppMain() {
       ) : null}
 
       {/* Main Container */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 pb-24 md:pb-6">
         
         {/* Smartphone Android Frame Wrapper when activated */}
         {isAndroidView ? (
-          <div className="flex flex-col items-center justify-center space-y-4 py-4">
-            <div className="flex items-center space-x-2 bg-purple-100 dark:bg-purple-950/80 text-purple-800 dark:text-purple-200 px-4 py-2 rounded-full text-xs font-bold border border-purple-300 dark:border-purple-700">
-              <Smartphone className="w-4 h-4 text-purple-600" />
-              <span>Simulador WebView Android Smartphone (390px x 844px)</span>
+          <div className="flex flex-col items-center justify-center space-y-3 py-2 sm:py-4">
+            <div className="flex items-center space-x-2 bg-purple-100 dark:bg-purple-950/80 text-purple-800 dark:text-purple-200 px-3 py-1.5 rounded-full text-xs font-bold border border-purple-300 dark:border-purple-700">
+              <Smartphone className="w-3.5 h-3.5 text-purple-600" />
+              <span>Simulador Android (390px × 844px)</span>
             </div>
 
-            {/* Device frame container */}
-            <div className="w-[410px] h-[820px] bg-gray-900 dark:bg-gray-950 rounded-[48px] p-3 shadow-2xl border-4 border-gray-800 relative flex flex-col">
+            {/* Device frame container (fluid max-w-full so it never overflows small screens) */}
+            <div className="w-full max-w-[410px] h-[820px] max-h-[85vh] bg-gray-900 dark:bg-gray-950 rounded-[36px] sm:rounded-[48px] p-2.5 sm:p-3 shadow-2xl border-4 border-gray-800 relative flex flex-col">
               
               {/* Speaker / Camera Notch */}
-              <div className="w-32 h-5 bg-black rounded-b-2xl mx-auto z-30 mb-1 flex items-center justify-center">
-                <div className="w-3 h-3 rounded-full bg-gray-800"></div>
+              <div className="w-28 sm:w-32 h-4 sm:h-5 bg-black rounded-b-2xl mx-auto z-30 mb-1 flex items-center justify-center">
+                <div className="w-2.5 h-2.5 rounded-full bg-gray-800"></div>
               </div>
 
               {/* WebView Display Canvas */}
-              <div className="w-full h-full bg-gray-50 dark:bg-gray-900 rounded-[36px] overflow-y-auto p-4 space-y-4 shadow-inner scrollbar-thin">
+              <div className="w-full h-full bg-gray-50 dark:bg-gray-900 rounded-[28px] sm:rounded-[36px] overflow-y-auto p-3 sm:p-4 space-y-4 shadow-inner scrollbar-thin">
                 {mainContent}
               </div>
 
               {/* Bottom Home Indicator Line */}
-              <div className="w-32 h-1 bg-gray-600 rounded-full mx-auto my-1.5 shrink-0"></div>
+              <div className="w-28 h-1 bg-gray-600 rounded-full mx-auto my-1 shrink-0"></div>
             </div>
           </div>
         ) : (
@@ -584,6 +592,39 @@ function AppMain() {
         )}
 
       </main>
+
+      {/* Mobile Sticky Bottom Total & Action Bar (md:hidden) */}
+      {selectedMaterials.length > 0 && !isAndroidView && (
+        <aside className="fixed bottom-0 left-0 right-0 z-30 md:hidden bg-slate-950/95 backdrop-blur-md border-t border-slate-800 px-4 py-2.5 flex items-center justify-between shadow-2xl">
+          <div className="flex flex-col">
+            <span className="text-[10px] uppercase font-bold text-slate-400">Total Obra:</span>
+            <span className="text-sm font-black font-mono tabular-nums text-white">
+              ${totalProjectCost.toLocaleString('es-CL')} <span className="text-[10px] text-orange-400 font-sans">CLP</span>
+            </span>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <button
+              type="button"
+              onClick={() => setShowShareModal(true)}
+              className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg bg-slate-900 border border-slate-700 text-slate-200 active:bg-slate-800 cursor-pointer"
+              title="Compartir presupuesto"
+              aria-label="Compartir presupuesto"
+            >
+              <Share2 className="w-4 h-4 text-emerald-400" />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowPrintModal(true)}
+              className="min-h-[44px] flex items-center space-x-1.5 px-4 py-2 rounded-lg bg-orange-600 active:bg-orange-500 text-white font-bold text-xs shadow-sm shadow-orange-950 cursor-pointer"
+            >
+              <FileText className="w-4 h-4" />
+              <span>Ver PDF</span>
+            </button>
+          </div>
+        </aside>
+      )}
 
       {/* Footer */}
       <footer className="border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800/80 mt-12 py-6 text-center text-xs text-gray-500 dark:text-gray-400">

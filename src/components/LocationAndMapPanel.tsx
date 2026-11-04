@@ -31,6 +31,7 @@ export const LocationAndMapPanel: React.FC<LocationAndMapPanelProps> = ({
   onFindSuppliers
 }) => {
   const [showAddModal, setShowAddModal] = useState(false);
+  const [mobileExpanded, setMobileExpanded] = useState(false);
   const [newSupName, setNewSupName] = useState('');
   const [newSupChain, setNewSupChain] = useState<'Sodimac' | 'Easy' | 'Construmart' | 'Chilemat' | 'Imperial' | 'Local'>('Local');
   const [newSupAddress, setNewSupAddress] = useState('');
@@ -118,19 +119,39 @@ export const LocationAndMapPanel: React.FC<LocationAndMapPanelProps> = ({
             </button>
           ))}
         </div>
+
+        {/* Mobile Radar / Stores Toggle Button */}
+        <div className="sm:hidden pt-1">
+          <button
+            type="button"
+            onClick={() => setMobileExpanded(!mobileExpanded)}
+            className="w-full flex items-center justify-between p-2 rounded-lg bg-slate-950 border border-slate-800 text-xs font-semibold text-slate-300 active:bg-slate-800"
+          >
+            <span className="flex items-center gap-1.5 text-blue-400">
+              <Navigation className="w-3.5 h-3.5" />
+              <span>{mobileExpanded ? 'Ocultar Cobertura Ferretera' : 'Ver Radar y Locales Cercanos'}</span>
+            </span>
+            <span className="text-[10px] font-mono bg-slate-900 px-2 py-0.5 rounded border border-slate-800 text-slate-400">
+              {suppliers.length} ferreterías {mobileExpanded ? '▲' : '▼'}
+            </span>
+          </button>
+        </div>
       </div>
 
-      {/* Visual Map / Radar Widget */}
-      <div className="bg-slate-950 rounded-lg p-3.5 border border-slate-800 text-slate-200 relative overflow-hidden">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center space-x-1.5 text-xs font-bold text-blue-400">
-            <Navigation className="w-3.5 h-3.5 text-blue-400" />
-            <span>Radio de Cobertura Ferretera (GPS Santiago / Regiones)</span>
+      {/* Radar and Suppliers Container: Always visible on desktop (sm:space-y-4), toggleable on mobile */}
+      <div className={`${mobileExpanded ? 'space-y-4' : 'hidden'} sm:block sm:space-y-4 animate-in fade-in duration-150`}>
+        
+        {/* Visual Map / Radar Widget */}
+        <div className="bg-slate-950 rounded-lg p-3.5 border border-slate-800 text-slate-200 relative overflow-hidden">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center space-x-1.5 text-xs font-bold text-blue-400">
+              <Navigation className="w-3.5 h-3.5 text-blue-400" />
+              <span>Radio de Cobertura Ferretera (GPS Santiago / Regiones)</span>
+            </div>
+            <span className="text-[10px] bg-slate-900 text-slate-300 px-2 py-0.5 rounded border border-slate-800 font-mono">
+              {suppliers.length} distribuidores
+            </span>
           </div>
-          <span className="text-[10px] bg-slate-900 text-slate-300 px-2 py-0.5 rounded border border-slate-800 font-mono">
-            {suppliers.length} distribuidores
-          </span>
-        </div>
 
         {/* Simulated Map Schematic */}
         <div className="h-32 bg-[#0b0f17] rounded border border-slate-800/80 relative flex items-center justify-center overflow-hidden">
@@ -211,6 +232,7 @@ export const LocationAndMapPanel: React.FC<LocationAndMapPanelProps> = ({
             </div>
           ))}
         </div>
+      </div>
       </div>
 
       {/* Add Custom Supplier Modal */}

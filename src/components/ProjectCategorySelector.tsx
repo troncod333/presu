@@ -11,7 +11,8 @@ import {
   Maximize2, 
   Camera, 
   Check, 
-  HardHat
+  HardHat,
+  ChevronRight
 } from 'lucide-react';
 
 interface ProjectCategorySelectorProps {
@@ -30,7 +31,7 @@ const CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: string }>
   Camera
 };
 
-// Distinctive specialty color badges
+// Distinctive specialty color accents
 const CATEGORY_ACCENTS: Partial<Record<ProjectType, { text: string; bg: string; activeBorder: string; activeBg: string; activeText: string }>> = {
   electricidad: {
     text: 'text-amber-400',
@@ -95,29 +96,30 @@ export const ProjectCategorySelector: React.FC<ProjectCategorySelectorProps> = (
   onSelectCategory
 }) => {
   return (
-    <div className="bg-slate-900/90 text-slate-100 p-4 sm:p-5 rounded-xl border border-slate-800 shadow-sm">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <HardHat className="w-4 h-4 text-orange-500" />
-            <h2 className="text-sm sm:text-base font-bold text-white tracking-tight">
-              Especialidad o Partida de Obra
-            </h2>
-          </div>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Selecciona la partida para cargar rendimientos chilenos, cubicación y normativas técnicas
-          </p>
+    <div className="bg-slate-900/90 text-slate-100 p-3.5 sm:p-5 rounded-xl border border-slate-800 shadow-sm">
+      
+      {/* Title & Technical Subtitle */}
+      <div className="flex items-center justify-between gap-2 mb-3">
+        <div className="flex items-center gap-2">
+          <HardHat className="w-4 h-4 text-orange-500 shrink-0" />
+          <h2 className="text-xs sm:text-base font-bold text-white tracking-tight">
+            Especialidad de Obra
+          </h2>
+          <span className="sm:hidden text-[10px] text-slate-400 flex items-center gap-0.5 font-mono">
+            <span>Desliza</span>
+            <ChevronRight className="w-3 h-3 text-orange-400 inline" />
+          </span>
         </div>
 
         {/* Technical subtitle unboxed */}
-        <div className="text-[11px] text-slate-400 font-mono flex items-center gap-2 self-start sm:self-auto bg-slate-950 px-3 py-1 rounded-md border border-slate-800">
-          <span className="w-2 h-2 rounded-full bg-orange-500 inline-block"></span>
+        <div className="text-[10px] sm:text-[11px] text-slate-400 font-mono hidden sm:flex items-center gap-2 bg-slate-950 px-2.5 py-1 rounded-md border border-slate-800">
+          <span className="w-1.5 h-1.5 rounded-full bg-orange-500 inline-block"></span>
           <span>Precios Chile 2025 · Sodimac / Easy / Chilemat</span>
         </div>
       </div>
 
-      {/* Grid of category chips */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2.5">
+      {/* MOBILE VIEW: Horizontal Touch Rail (Saves ~320px of mobile height) */}
+      <div className="sm:hidden flex overflow-x-auto gap-2 pb-1.5 scrollbar-none snap-x -mx-1 px-1">
         {PROJECT_CATEGORIES.map((cat) => {
           const isSelected = selectedCategory === cat.id;
           const IconComponent = CATEGORY_ICONS[cat.iconName] || HardHat;
@@ -128,7 +130,66 @@ export const ProjectCategorySelector: React.FC<ProjectCategorySelectorProps> = (
             activeBg: 'bg-orange-950/30',
             activeText: 'text-orange-400'
           };
+          const isCriticalSec = cat.id === 'electricidad' || cat.id === 'gasfiteria';
 
+          return (
+            <button
+              key={cat.id}
+              onClick={() => onSelectCategory(cat.id)}
+              className={`snap-start shrink-0 w-[118px] p-2.5 rounded-lg border text-left transition-all relative flex flex-col justify-between cursor-pointer active:scale-95 ${
+                isSelected
+                  ? `${accent.activeBg} ${accent.activeBorder} ring-2 border-orange-500 shadow-md`
+                  : 'bg-slate-950/80 hover:bg-slate-800 border-slate-800 text-slate-300'
+              }`}
+            >
+              <div className="flex items-center justify-between w-full mb-1.5">
+                <div
+                  className={`w-7 h-7 rounded-md flex items-center justify-center border ${
+                    isSelected
+                      ? 'bg-slate-900 border-slate-700 text-white'
+                      : `${accent.bg} ${accent.text} border-transparent`
+                  }`}
+                >
+                  <IconComponent className="w-3.5 h-3.5" />
+                </div>
+                {isSelected ? (
+                  <div className="w-4 h-4 rounded-full bg-orange-500 flex items-center justify-center text-slate-950 shrink-0">
+                    <Check className="w-2.5 h-2.5 stroke-[3]" />
+                  </div>
+                ) : isCriticalSec ? (
+                  <span className="text-[8px] font-mono font-bold text-amber-400 bg-amber-400/10 px-1 py-0.2 rounded border border-amber-400/20">
+                    SEC
+                  </span>
+                ) : null}
+              </div>
+
+              <div>
+                <h3 className={`text-xs font-bold leading-tight truncate ${
+                  isSelected ? 'text-white' : 'text-slate-200'
+                }`}>
+                  {cat.name}
+                </h3>
+                <span className="text-[10px] text-slate-400 font-mono block mt-0.5">
+                  M.O. ~{Math.round(cat.laborPercent * 100)}%
+                </span>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* DESKTOP VIEW: Full Grid (sm:grid) */}
+      <div className="hidden sm:grid sm:grid-cols-4 lg:grid-cols-8 gap-2.5">
+        {PROJECT_CATEGORIES.map((cat) => {
+          const isSelected = selectedCategory === cat.id;
+          const IconComponent = CATEGORY_ICONS[cat.iconName] || HardHat;
+          const accent = CATEGORY_ACCENTS[cat.id] || {
+            text: 'text-orange-400',
+            bg: 'bg-slate-800',
+            activeBorder: 'border-orange-500 ring-orange-500/30',
+            activeBg: 'bg-orange-950/30',
+            activeText: 'text-orange-400'
+          };
           const isCriticalSec = cat.id === 'electricidad' || cat.id === 'gasfiteria';
 
           return (
@@ -137,7 +198,7 @@ export const ProjectCategorySelector: React.FC<ProjectCategorySelectorProps> = (
               onClick={() => onSelectCategory(cat.id)}
               className={`p-3 rounded-lg border text-left transition-all relative flex flex-col justify-between cursor-pointer group ${
                 isSelected
-                  ? `${accent.activeBg} ${accent.activeBorder} ring-2 border-l-4 shadow-md`
+                  ? `${accent.activeBg} ${accent.activeBorder} ring-2 border-orange-500 shadow-md`
                   : 'bg-slate-950/60 hover:bg-slate-800/80 border-slate-800/90 text-slate-300 hover:text-white'
               }`}
             >
@@ -176,6 +237,7 @@ export const ProjectCategorySelector: React.FC<ProjectCategorySelectorProps> = (
           );
         })}
       </div>
+
     </div>
   );
 };

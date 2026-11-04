@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Building2, 
   Smartphone, 
@@ -6,7 +6,9 @@ import {
   Code2, 
   Sun, 
   Moon, 
-  Layers
+  Menu,
+  X,
+  Download
 } from 'lucide-react';
 import { UserAccountWidget } from './UserAccountWidget';
 
@@ -31,59 +33,46 @@ export const Navbar: React.FC<NavbarProps> = ({
   savedCount,
   onGoHome
 }) => {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   return (
-    <header className="sticky top-0 z-40 bg-slate-950/95 text-slate-100 backdrop-blur-md border-b border-slate-800/80 shadow-md transition-colors">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-3">
+    <header className="sticky top-0 z-40 bg-slate-950/95 text-slate-100 backdrop-blur-md border-b border-slate-800 shadow-md">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-14 sm:h-16 gap-2">
           
-          {/* Brand & Technical Metadata */}
-          <div className="flex items-center space-x-3 w-full md:w-auto justify-between md:justify-start">
+          {/* Brand Wordmark (Zone 1) */}
+          <div className="flex items-center space-x-2.5 shrink-0">
             <button
               onClick={onGoHome}
-              className="flex items-center space-x-3 text-left cursor-pointer group focus:outline-none"
+              className="flex items-center space-x-2.5 text-left cursor-pointer group focus:outline-none"
               title="Volver a la Página Principal"
             >
-              <div className="w-9 h-9 rounded-lg bg-orange-600 text-white flex items-center justify-center shadow-sm shadow-orange-950 font-bold group-hover:scale-105 transition-transform">
-                <Building2 className="w-5 h-5 text-white" />
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-orange-600 text-white flex items-center justify-center shadow-sm shadow-orange-950 font-bold group-hover:scale-105 transition-transform shrink-0">
+                <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
-              <div>
-                <div className="flex items-center space-x-2">
-                  <h1 className="text-base sm:text-lg font-bold tracking-tight text-white whitespace-nowrap">
-                    Cubicador Pro <span className="text-xs px-2 py-0.5 rounded font-mono font-bold bg-slate-900 border border-orange-500/40 text-orange-400">CHILE</span>
-                  </h1>
+              <div className="flex flex-col">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-base sm:text-lg font-bold tracking-tight text-white whitespace-nowrap">
+                    Cubicador Pro
+                  </span>
+                  <span className="text-[10px] px-1.5 py-0.2 rounded font-mono font-bold bg-slate-900 border border-orange-500/40 text-orange-400">
+                    CHILE
+                  </span>
                 </div>
-                <div className="text-[11px] text-slate-400 font-normal flex items-center gap-1.5 whitespace-nowrap">
-                  <span>Cubicación & Presupuestos</span>
-                  <span aria-hidden="true" className="text-slate-600">·</span>
-                  <span>Normas SEC / MINVU</span>
-                  <span aria-hidden="true" className="text-slate-600">·</span>
-                  <span>Precios Mayoristas</span>
-                </div>
+                <span className="hidden sm:inline-block text-[10px] text-slate-400 leading-none">
+                  Cubicación y Presupuestos SEC / MINVU
+                </span>
               </div>
             </button>
-
-            {/* Quick mobile buttons */}
-            <div className="flex md:hidden items-center space-x-2">
-              <button
-                onClick={onToggleDarkMode}
-                className="p-1.5 rounded-lg bg-slate-800 text-slate-200 border border-slate-700"
-                title="Cambiar Modo"
-              >
-                {isDarkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-blue-400" />}
-              </button>
-            </div>
           </div>
 
-          {/* Action Toolbar Controls */}
-          <div className="flex flex-wrap items-center justify-center md:justify-end gap-2 w-full md:w-auto">
-            
-            {/* User Account / Token / Referral Widget */}
+          {/* Desktop Toolbar Controls (Zone 2 & 3) */}
+          <div className="hidden md:flex items-center gap-2">
             <UserAccountWidget />
 
-            {/* View Mode Toggle Button */}
             <button
               onClick={onToggleAndroidView}
-              className={`flex items-center space-x-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border transition-all whitespace-nowrap ${
+              className={`flex items-center space-x-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border transition-all whitespace-nowrap cursor-pointer ${
                 isAndroidView
                   ? 'bg-blue-600 text-white border-blue-500 shadow-sm'
                   : 'bg-slate-900 text-slate-300 border-slate-700 hover:bg-slate-800 hover:text-white'
@@ -91,13 +80,12 @@ export const Navbar: React.FC<NavbarProps> = ({
               title="Alternar entre modo smartphone Android y modo web completa"
             >
               <Smartphone className="w-3.5 h-3.5 text-blue-400" />
-              <span>{isAndroidView ? 'Modo Smartphone' : 'Vista Completa'}</span>
+              <span>{isAndroidView ? 'Simulador Smartphone' : 'Vista Completa'}</span>
             </button>
 
-            {/* Saved Budgets Modal */}
             <button
               onClick={onOpenSavedBudgets}
-              className="relative flex items-center space-x-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-900 text-slate-200 border border-slate-700 hover:border-slate-500 hover:bg-slate-800 transition-colors whitespace-nowrap"
+              className="relative flex items-center space-x-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-900 text-slate-200 border border-slate-700 hover:border-slate-500 hover:bg-slate-800 transition-colors whitespace-nowrap cursor-pointer"
             >
               <FolderOpen className="w-3.5 h-3.5 text-orange-400" />
               <span>Presupuestos</span>
@@ -108,27 +96,115 @@ export const Navbar: React.FC<NavbarProps> = ({
               )}
             </button>
 
-            {/* Android Studio Integration Guide */}
             <button
               onClick={onOpenAndroidGuide}
-              className="flex items-center space-x-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-900 text-slate-300 border border-slate-700 hover:border-slate-500 hover:bg-slate-800 transition-colors whitespace-nowrap"
+              className="flex items-center space-x-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-900 text-slate-300 border border-slate-700 hover:border-slate-500 hover:bg-slate-800 transition-colors whitespace-nowrap cursor-pointer"
             >
               <Code2 className="w-3.5 h-3.5 text-slate-400" />
               <span>Guía Android</span>
             </button>
 
-            {/* Dark Mode Toggle */}
+            <a
+              href="/api/backup/download"
+              download="backup_psr_studio.zip"
+              className="flex items-center space-x-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-emerald-950/70 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-900/80 transition-colors whitespace-nowrap cursor-pointer"
+              title="Descargar archivo ZIP con todo el código de PSR Studio a tu PC antes de borrar"
+            >
+              <Download className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Descargar Respaldo PSR (.zip)</span>
+            </a>
+
             <button
               onClick={onToggleDarkMode}
-              className="hidden md:flex items-center justify-center p-2 rounded-lg bg-slate-900 text-slate-300 hover:text-white border border-slate-700 hover:border-slate-500 transition-colors"
+              className="flex items-center justify-center p-2 rounded-lg bg-slate-900 text-slate-300 hover:text-white border border-slate-700 hover:border-slate-500 transition-colors cursor-pointer"
               title="Cambiar tema claro/oscuro"
+              aria-label="Cambiar tema"
             >
               {isDarkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-blue-400" />}
             </button>
+          </div>
 
+          {/* Mobile Right Controls: Compact, touch-friendly, never cluttered */}
+          <div className="flex md:hidden items-center gap-1.5 shrink-0">
+            <UserAccountWidget />
+
+            {/* Saved Budgets Quick Icon */}
+            <button
+              onClick={onOpenSavedBudgets}
+              className="relative min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg bg-slate-900 text-slate-200 border border-slate-800 active:bg-slate-800 cursor-pointer"
+              title="Ver presupuestos guardados"
+              aria-label="Presupuestos guardados"
+            >
+              <FolderOpen className="w-4 h-4 text-orange-400" />
+              {savedCount > 0 && (
+                <span className="absolute top-1.5 right-1 px-1.5 py-0.2 rounded-full bg-orange-600 text-white text-[9px] font-mono font-bold">
+                  {savedCount}
+                </span>
+              )}
+            </button>
+
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg bg-slate-900 text-slate-200 border border-slate-800 active:bg-slate-800 cursor-pointer"
+              aria-label="Abrir menú de opciones"
+            >
+              {mobileMenuOpen ? <X className="w-5 h-5 text-orange-400" /> : <Menu className="w-5 h-5" />}
+            </button>
           </div>
 
         </div>
+
+        {/* Mobile Dropdown Menu Drawer */}
+        {mobileMenuOpen && (
+          <div className="md:hidden py-3 border-t border-slate-800/80 space-y-2 animate-in fade-in duration-150">
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onToggleDarkMode();
+                }}
+                className="flex items-center space-x-2 p-2.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-200 font-medium active:bg-slate-800"
+              >
+                {isDarkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-blue-400" />}
+                <span>{isDarkMode ? 'Modo Claro' : 'Modo Oscuro'}</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onOpenAndroidGuide();
+                }}
+                className="flex items-center space-x-2 p-2.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-200 font-medium active:bg-slate-800"
+              >
+                <Code2 className="w-4 h-4 text-blue-400" />
+                <span>Guía Android</span>
+              </button>
+            </div>
+
+            <a
+              href="/api/backup/download"
+              download="backup_psr_studio.zip"
+              onClick={() => setMobileMenuOpen(false)}
+              className="w-full flex items-center justify-center space-x-2 p-2.5 rounded-lg bg-emerald-950/70 border border-emerald-500/40 text-emerald-300 font-semibold text-xs active:bg-emerald-900/80 cursor-pointer"
+            >
+              <Download className="w-4 h-4 text-emerald-400" />
+              <span>Descargar Respaldo PSR Studio (.zip)</span>
+            </a>
+
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                onToggleAndroidView();
+              }}
+              className="w-full flex items-center justify-center space-x-2 p-2.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 font-medium text-xs active:bg-slate-800"
+            >
+              <Smartphone className="w-4 h-4 text-orange-400" />
+              <span>{isAndroidView ? 'Desactivar Marco Simulador' : 'Marco Simulador Smartphone'}</span>
+            </button>
+          </div>
+        )}
+
       </div>
     </header>
   );
