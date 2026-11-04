@@ -7,8 +7,7 @@ import {
   Sun, 
   Moon, 
   Menu,
-  X,
-  Download
+  X
 } from 'lucide-react';
 import { UserAccountWidget } from './UserAccountWidget';
 
@@ -104,16 +103,6 @@ export const Navbar: React.FC<NavbarProps> = ({
               <span>Guía Android</span>
             </button>
 
-            <a
-              href="/api/backup/download"
-              download="backup_psr_studio.zip"
-              className="flex items-center space-x-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-emerald-950/70 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-900/80 transition-colors whitespace-nowrap cursor-pointer"
-              title="Descargar archivo ZIP con todo el código de PSR Studio a tu PC antes de borrar"
-            >
-              <Download className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Descargar Respaldo PSR (.zip)</span>
-            </a>
-
             <button
               onClick={onToggleDarkMode}
               className="flex items-center justify-center p-2 rounded-lg bg-slate-900 text-slate-300 hover:text-white border border-slate-700 hover:border-slate-500 transition-colors cursor-pointer"
@@ -181,16 +170,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <span>Guía Android</span>
               </button>
             </div>
-
-            <a
-              href="/api/backup/download"
-              download="backup_psr_studio.zip"
-              onClick={() => setMobileMenuOpen(false)}
-              className="w-full flex items-center justify-center space-x-2 p-2.5 rounded-lg bg-emerald-950/70 border border-emerald-500/40 text-emerald-300 font-semibold text-xs active:bg-emerald-900/80 cursor-pointer"
-            >
-              <Download className="w-4 h-4 text-emerald-400" />
-              <span>Descargar Respaldo PSR Studio (.zip)</span>
-            </a>
 
             <button
               onClick={() => {
